@@ -3,19 +3,7 @@ var ctx = canvas.getContext("2d")
 function lerp(start, end, t) {
     return start * (1 - t) + end * t;
 }
-function lerpC(c1, c2, t) {
-    var r1=c1[0]
-    var g1=c1[1]
-    var b1=c1[2]
-    var r2=c2[0]
-    var g2=c2[1]
-    var b2=c2[2]
-    var lr=lerp(r1,r2,t)
-    var lg=lerp(g1,g2,t)
-    var lb=lerp(b1,b2,t)
-    var res = [lr,lg,lb]
-    return res
-}
+
 
 var atmosArray=[[0,0,0,0,0,0,0,0,0,0],
                 [0,0,0,0,0,0,0,0,0,0],
@@ -71,14 +59,14 @@ function drawVals(){
     for (let y = 0; y < atmosArrayAdv.length; y++) {
         for (let x = 0; x < atmosArrayAdv[y].length; x++) {
             if(atmosArrayAdv[y][x].center!=-1){
-                if (atmosArrayAdv[y][x].center>0) {
+                if (atmosArrayAdv[y][x].center>=0) {
                     withPressure.push(atmosArray[y][x])
                 }
             }
         }
     }
-    var max=Math.max(...withPressure)
-    var min=0
+    var max=Math.round(Math.max(...withPressure)*1000)/ 1000
+    var min=Math.round(Math.min(...withPressure)*1000)/ 1000
     c=max-min
     ctx.fillStyle="#000000"
     ctx.fillRect(0,0,640,640)
@@ -91,14 +79,14 @@ function drawVals(){
             if (atmosArray[y][x]==-1) {
                 ctx.fillStyle="#000000"
             }else{
-                var r ="rgb("
+                var r ="hsl("
                 c1=(atmosArray[y][x] - min) / (max - min)
                 if (min==max) {
                     c1=0.5
                 }
-                res=lerpC([0,0,255],[255,0,0],c1)
+                
                 [1,2,3]
-                r+=lerpC([0,0,255],[255,0,0],c1).join()
+                r+=lerp(240,0,c1)+",100%,50%"
                 r+=")"
                 ctx.fillStyle=r
             }
@@ -254,4 +242,4 @@ setInterval(() => {
 }, 1000/30);
 setInterval(() => {
     step()
-}, 1000);
+}, 1000/30);
