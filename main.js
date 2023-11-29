@@ -131,22 +131,22 @@ function closePressure(x,y){
         finalVal=atmosArray[y][x]/c
         if(u){
             addPressure(x,y-1,finalVal)
-            drawVals()
+            
         }
         if(d){
             addPressure(x,y+1,finalVal)
-            drawVals()
+            
         }
         if(l){
             addPressure(x-1,y,finalVal)
-            drawVals()
+            
         }
         if(r){
             addPressure(x+1,y,finalVal)
-            drawVals()
+            
         }
         setPressure(x,y,-1)
-        drawVals()
+        
     }
 }
 function setPressure(x,y,val){
@@ -217,29 +217,29 @@ function step(){
         }
         var finalVal=sum/c
         setPressure(x,y,finalVal)
-        drawVals()
+        
         if(!(atmosArrayAdv[y][x].up < 0)){
             setPressure(x,y-1,finalVal)
-            drawVals()
+            
         }
         if(!(atmosArrayAdv[y][x].down < 0)){
             setPressure(x,y+1,finalVal)
-            drawVals()
+            
         }
         if(!(atmosArrayAdv[y][x].left < 0)){
             setPressure(x-1,y,finalVal)
-            drawVals()
+            
         }
         if(!(atmosArrayAdv[y][x].right < 0)){
             setPressure(x+1,y,finalVal)
-            drawVals()
+            
         }
     }
 }
 
 setInterval(() => {
     drawVals()
-}, 1000/30);
+}, 1000/60);
 setInterval(() => {
     step()
-}, 1000/2);
+}, 1000/20);
