@@ -1,5 +1,15 @@
 var canvas = document.querySelector("canvas")
 var ctx = canvas.getContext("2d")
+var adding=document.getElementById("add")
+var mouseX=0
+var mouseY=0
+var c=10
+var cs=64
+var cpx=0
+var cpy=0
+var m = false
+var mOld=false
+
 function lerp(start, end, t) {
     return start * (1 - t) + end * t;
 }
@@ -166,6 +176,11 @@ function setPressure(x,y,val){
     }
 }
 function addPressure(x,y,val){
+    if (atmosArray[y][x]<0) return
+    if ((atmosArray[y][x]+val)<0){
+        setPressure(x,y,0) 
+        return
+    }
     atmosArrayAdv[y][x].center+=val
     atmosArray[y][x]+=val
     if(atmosArrayAdv[y][x].up!=-2){
@@ -236,8 +251,48 @@ function step(){
         }
     }
 }
+function interact(){
+    let i = m && m!=mOld
+    if(document.getElementById("p").checked){
+        if (i) {
+            addPressure(cpx,cpy,Number(add.value))
+        }
+    }else{
+        if ((atmosArray[cpy][cpx]==-1) && i) {
+            openPressure(cpx,cpy)
+        }else if((atmosArray[cpy][cpx]>=0) && i){
+            closePressure(cpx,cpy)
+        }
+    }
+    
+    if (m!=mOld) {
+        mOld=m
+    }
+    
+}
+canvas.addEventListener("mousemove",(e)=>{
+    ctx.fillRect(e.pageX-7,e.pageY-7,4,4)
+    mouseX=e.pageX-7
+    mouseY=e.pageY-7
+    cpx=Math.ceil(mouseX / cs)-1
+    cpy=Math.ceil(mouseY / cs)-1
+    
+})
+canvas.addEventListener("mousedown",(e)=>{
+    
+    
+    m=true
+    
+})
 
+canvas.addEventListener("mouseup",(e)=>{
+    
+    
+    m=false
+    
+})
 setInterval(() => {
+    interact()
     drawVals()
 }, 1000/60);
 setInterval(() => {
