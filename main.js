@@ -1,5 +1,3 @@
-var canvas = document.querySelector("canvas")
-var ctx = canvas.getContext("2d")
 var adding=document.getElementById("add")
 var mouseX=0
 var mouseY=0
@@ -7,8 +5,15 @@ var c=10
 var cs=64
 var cpx=0
 var cpy=0
-var m = false
-var mOld=false
+const HSLToRGB = (h, s, l) => {
+    s /= 100;
+    l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n =>
+      l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return [255 * f(0), 255 * f(8), 255 * f(4)];
+  };
 
 function lerp(start, end, t) {
     return start * (1 - t) + end * t;
@@ -37,34 +42,10 @@ var atmosArrayAdv=[[{},{},{},{},{},{},{},{},{},{}],
                    [{},{},{},{},{},{},{},{},{},{}],
                    [{},{},{},{},{},{},{},{},{},{}],
                    [{},{},{},{},{},{},{},{},{},{}]]
-for (let y = 0; y < atmosArrayAdv.length; y++) {
-    for (let x = 0; x < atmosArrayAdv[y].length; x++) {
-        if(x-1<0){
-            var left=-2
-        }else{
-            var left=atmosArray[y][x-1]
-        }
-        if(x+1>=atmosArrayAdv[y].length){
-            var right=-2
-        }else{
-            var right=atmosArray[y][x+1]
-        }
-        if(y-1<0){
-            var up=-2
-        }else{
-            var up=atmosArray[y-1][x]
-        }
-        if(y+1>=atmosArrayAdv.length){
-            var down=-2
-        }else{
-            var down=atmosArray[y+1][x]
-        }
-        atmosArrayAdv[y][x]={center:atmosArray[y][x],left,right,up,down}
-    }
-    
-    
-}
-function drawVals(){
+
+function draw(){
+    cpx=Math.ceil(mouseX / cs)-1
+    cpy=Math.ceil(mouseY / cs)-1
     var withPressure=[]
     for (let y = 0; y < atmosArrayAdv.length; y++) {
         for (let x = 0; x < atmosArrayAdv[y].length; x++) {
@@ -78,8 +59,7 @@ function drawVals(){
     var max=Math.round(Math.max(...withPressure)*1000)/ 1000
     var min=Math.round(Math.min(...withPressure)*1000)/ 1000
     c=max-min
-    ctx.fillStyle="#000000"
-    ctx.fillRect(0,0,640,640)
+    background(0)
     
     for (let y = 0; y < atmosArray.length; y++) {
         for (let x = 0; x < atmosArray[y].length; x++) {
@@ -87,28 +67,24 @@ function drawVals(){
             var py=y*64
             
             if (atmosArray[y][x]==-1) {
-                ctx.fillStyle="#000000"
+                fill(0)
             }else{
-                var r ="hsl("
-                c1=(atmosArray[y][x] - min) / (max - min)
-                if (min==max) {
-                    c1=0.5
-                }
                 
-                [1,2,3]
-                r+=lerp(240,0,c1)+",100%,50%"
-                r+=")"
-                ctx.fillStyle=r
+                c1=(atmosArray[y][x] - min) / (max - min)
+                c1=c1==Infinity ||c1==-Infinity ? 0.5 : c1
+                col=HSLToRGB(lerp(240,0,c1),100,50)
+                fill(...HSLToRGB(lerp(240,0,c1),100,50))
             }
             
-            ctx.fillRect(px,py,64,64)
-            ctx.fillStyle="#000000"
-            ctx.fillText(Math.round(atmosArray[y][x]*100)/ 100,x*64+10,y*64+16)
+            rect(px,py,64,64)
+            fill(0)
+            text((Math.round(atmosArray[y][x]*100)/ 100).toString(),x*64+10,y*64+16)
             
         }
         
     }
 }
+
 
 function openPressure(x,y){
     if (atmosArray[y][x]==-1) {
@@ -251,50 +227,53 @@ function step(){
         }
     }
 }
-function interact(){
-    let i = m && m!=mOld
+function mouseClicked() {
+    if(cpx>9 || cpx<0 || cpy>9 || cpy<0)return
     if(document.getElementById("p").checked){
-        if (i) {
-            addPressure(cpx,cpy,Number(add.value))
-        }
+        addPressure(cpx,cpy,Number(add.value))
     }else{
-        if ((atmosArray[cpy][cpx]==-1) && i) {
+        if ((atmosArray[cpy][cpx]==-1)) {
             openPressure(cpx,cpy)
-        }else if((atmosArray[cpy][cpx]>=0) && i){
+        }else if((atmosArray[cpy][cpx]>=0)){
             closePressure(cpx,cpy)
         }
     }
     
-    if (m!=mOld) {
-        mOld=m
-    }
-    
 }
-canvas.addEventListener("mousemove",(e)=>{
-    ctx.fillRect(e.pageX-7,e.pageY-7,4,4)
-    mouseX=e.pageX-7
-    mouseY=e.pageY-7
-    cpx=Math.ceil(mouseX / cs)-1
-    cpy=Math.ceil(mouseY / cs)-1
-    
-})
-canvas.addEventListener("mousedown",(e)=>{
-    
-    
-    m=true
-    
-})
+function setup(){
+    createCanvas(640,640)
+    noStroke()
+    setInterval(() => {
+        step()
+    }, 1000/20);
+    for (let y = 0; y < atmosArrayAdv.length; y++) {
+        for (let x = 0; x < atmosArrayAdv[y].length; x++) {
+            if(x-1<0){
+                var left=-2
+            }else{
+                var left=atmosArray[y][x-1]
+            }
+            if(x+1>=atmosArrayAdv[y].length){
+                var right=-2
+            }else{
+                var right=atmosArray[y][x+1]
+            }
+            if(y-1<0){
+                var up=-2
+            }else{
+                var up=atmosArray[y-1][x]
+            }
+            if(y+1>=atmosArrayAdv.length){
+                var down=-2
+            }else{
+                var down=atmosArray[y+1][x]
+            }
+            atmosArrayAdv[y][x]={center:atmosArray[y][x],left,right,up,down}
+        }
+        
+        
+    }
+}
 
-canvas.addEventListener("mouseup",(e)=>{
-    
-    
-    m=false
-    
-})
-setInterval(() => {
-    interact()
-    drawVals()
-}, 1000/60);
-setInterval(() => {
-    step()
-}, 1000/20);
+
+
